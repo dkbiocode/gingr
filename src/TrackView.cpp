@@ -7,7 +7,6 @@
 #include "TrackView.h"
 
 float absf(float value);
-int floor(float value);
 
 TrackView::TrackView()
 {
@@ -247,14 +246,3 @@ float absf(float value)
 	return value;
 }
 
-int floor(float value)
-{
-	int result = value;
-	
-	if ( result > value )
-	{
-		result--;
-	}
-	
-	return result;
-}

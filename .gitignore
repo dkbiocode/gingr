@@ -1,0 +1,35 @@
+# Build artifacts
+*.o
+*.a
+*.so
+*.dylib
+moc_*.cpp
+moc_*.h
+moc_predefs.h
+qrc_*.cpp
+.qmake.stash
+Makefile
+gingr.pro
+config.log
+config.status
+configure
+configure~
+
+# Generated directories
+Gingr.app/
+autom4te.cache/
+
+# Binaries
+harvesttools
+
+# Dependencies (built separately)
+hvt_src/
+
+# macOS
+.DS_Store
+
+# Editor files
+*.swp
+*~
+.vscode/
+.idea/

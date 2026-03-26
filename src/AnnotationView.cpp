@@ -6,6 +6,7 @@
 
 #include "AnnotationView.h"
 #include <QPainter>
+#include <QPainterPath>
 #include <QMouseEvent>
 #include <QToolTip>
 

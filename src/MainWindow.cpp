@@ -1847,7 +1847,7 @@ void MainWindow::loadAlignment(const QString &fileName, const QString &fileNameR
 	{
 		LoadResult result;
 		
-		if ( async )
+		if ( asyncLoad )
 		{
 			inContextMenu = true;
 			QFileInfo fileInfo(fileName);
@@ -2027,7 +2027,7 @@ bool MainWindow::loadHarvest(const QString & fileName)
 	
 	QFileInfo fileInfo(fileName);
 	
-	if ( async )
+	if ( asyncLoad )
 	{
 		QProgressDialog dialog;
 		dialog.setCancelButton(0);

@@ -8,10 +8,10 @@ INCLUDEPATH += . src $$quote(@harvest@/include/) $$quote(@protobuf@/include/)
 QT += xml
 QT += widgets
 CONFIG += release
-LIBS += @harvest@/lib/libharvest.a @protobuf@/lib/libprotobuf.a @capnp@/lib/libcapnp.a @capnp@/lib/libkj.a -lz
+LIBS += @harvest@/lib/libharvest.a -L@protobuf@/lib -L@capnp@/lib -Wl,-rpath,@protobuf@/lib -lprotobuf -labsl_log_internal_message -labsl_log_internal_check_op -lcapnp -lkj -lz
 RESOURCES += resource.qrc
 ICON = img/gingr.icns
-QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=c++17
 
 unix {
 	macx {
