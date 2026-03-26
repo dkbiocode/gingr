@@ -22,8 +22,26 @@ autom4te.cache/
 # Binaries
 harvesttools
 
-# Dependencies (built separately)
-hvt_src/
+# Harvest-tools is bundled in source, but ignore ALL build artifacts
+harvest_src/autom4te.cache/
+harvest_src/config.log
+harvest_src/config.status
+harvest_src/configure
+harvest_src/configure~
+harvest_src/Makefile
+harvest_src/**/*.o
+harvest_src/**/*.lo
+harvest_src/**/*.a
+harvest_src/**/*.la
+harvest_src/**/.deps/
+harvest_src/**/.libs/
+harvest_src/harvesttools
+harvest_src/libharvest.a
+# Protobuf/capnp generated files
+harvest_src/**/pb/*.cc
+harvest_src/**/pb/*.h
+harvest_src/**/capnp/*.c++
+harvest_src/**/capnp/*.h
 
 # macOS
 .DS_Store
