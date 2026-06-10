@@ -16,7 +16,7 @@ jobs:
       matrix:
         include:
           # macOS - clang (Apple Silicon and Intel)
-          - os: macos-13
+          - os: macos-14-large
             compiler: clang
             arch: x86_64
             qt-version: "5.15.*"
@@ -48,7 +48,7 @@ jobs:
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v4
         with:
-          auto-update-conda: true
+          miniforge-version: latest
           python-version: "3.11"
           activate-environment: gingr-build
           environment-file: environment.yml
