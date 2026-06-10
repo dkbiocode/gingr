@@ -1,0 +1,99 @@
+name: Quick Test (Single Platform)
+
+# This is a faster workflow for quick feedback during development
+# Only tests on Ubuntu with gcc
+# Use this for rapid iteration, use full ci.yml before merging
+
+on:
+  push:
+    branches-ignore:
+      - master
+      - develop
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+jobs:
+  quick-test:
+    name: Quick Test (Ubuntu/gcc)
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: "3.11"
+          activate-environment: gingr-build
+          environment-file: environment.yml
+
+      - name: Install dependencies
+        shell: bash -l {0}
+        run: |
+          conda install -y qt protobuf capnproto autoconf automake make gcc_linux-64 gxx_linux-64
+
+      - name: Build harvest-tools
+        shell: bash -l {0}
+        working-directory: harvest_src
+        run: |
+          ./bootstrap.sh
+          CPPFLAGS="-I$CONDA_PREFIX/include -std=c++17" \
+          LDFLAGS="-L$CONDA_PREFIX/lib -Wl,-rpath,$CONDA_PREFIX/lib" \
+          ./configure --prefix=$CONDA_PREFIX \
+                      --with-protobuf=$CONDA_PREFIX \
+                      --with-capnp=$CONDA_PREFIX
+          make -j$(nproc)
+
+      - name: Run tests
+        shell: bash -l {0}
+        working-directory: harvest_src
+        run: |
+          # Set pkg-config path for protobuf dependencies
+          export PKG_CONFIG_PATH="$CONDA_PREFIX/lib/pkgconfig"
+
+          # Build and run compression test
+          g++ -std=c++17 \
+            -I"$CONDA_PREFIX/include" -Isrc \
+            test_compression.cpp \
+            -L"$CONDA_PREFIX/lib" \
+            -Wl,-rpath,"$CONDA_PREFIX/lib" \
+            -lharvest $(pkg-config --libs protobuf) -lcapnp -lkj -lz \
+            -o test_compression
+
+          ./test_compression
+
+          # Build and run threading portability test
+          g++ -std=c++17 \
+            -I"$CONDA_PREFIX/include" -Isrc \
+            test_threading_portability.cpp \
+            -L"$CONDA_PREFIX/lib" \
+            -Wl,-rpath,"$CONDA_PREFIX/lib" \
+            -lharvest $(pkg-config --libs protobuf) -lcapnp -lkj -lz \
+            -o test_threading_portability
+
+          ./test_threading_portability
+
+      - name: Build Gingr
+        shell: bash -l {0}
+        run: |
+          ./bootstrap.sh
+          CPPFLAGS="-I$CONDA_PREFIX/include -std=c++17" \
+          LDFLAGS="-L$CONDA_PREFIX/lib -Wl,-rpath,$CONDA_PREFIX/lib" \
+          ./configure --prefix=$CONDA_PREFIX \
+                      --with-protobuf=$CONDA_PREFIX \
+                      --with-capnp=$CONDA_PREFIX \
+                      --with-harvest=$CONDA_PREFIX
+          qmake
+          make -j$(nproc)
+
+      - name: Verify build
+        shell: bash -l {0}
+        run: |
+          if [ ! -f "gingr" ]; then
+            echo "✗ gingr binary not found!"
+            exit 1
+          fi
+          echo "✓ gingr binary exists"
+          ls -lh gingr

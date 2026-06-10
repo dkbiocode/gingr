@@ -1,0 +1,13 @@
+name: gingr-build
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - qt=5.15
+  - protobuf
+  - capnproto
+  - autoconf
+  - automake
+  - make
+  # Platform-specific packages will be installed in the workflow
