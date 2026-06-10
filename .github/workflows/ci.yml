@@ -122,7 +122,7 @@ jobs:
           mkdir -p gingr_app/build/obj gingr_app/build/moc gingr_app/build/rcc
 
           echo "=== Running qmake ==="
-          qmake
+          qmake gingr.pro
 
           echo "=== Building harvest library and Gingr ==="
           if [ "$RUNNER_OS" = "Windows" ]; then
