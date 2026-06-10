@@ -1,0 +1,96 @@
+<html>
+	<body>
+		<h2>Contents</h2>
+		<ul>
+			<li><a href="#main">Main window</a></li>
+			<li><a href="#menu">Menus</a></li>
+		</ul>
+		<h2 id="main">Main window (<a href="#">back to Contents</a>)</h2>
+		<img border=1 src="img/screen.jpg"/>
+		<ol>
+			<li><p><strong>Overview - </strong>A miniature view of the entire phylogenetic tree and SNP heatmap, with the currently zoomed sections of each highlighted in blue.</p></li>
+			<li><p><strong>Annotations - </strong>If a GenBank file was provided, its annotations will appear here. When zoomed out, they are condensed into a density plot. Hover over genes to show more information, and click on them to zoom. This view also shows LCB boundaries (gray lines; faded out if crowded), and reference contig boundaries (red lines).</p></li>
+			<li><strong>Ruler - </strong>Reference-based (ungapped) positions for the current view. Click to re-center; click and drag to zoom in on a region.</li><br/>
+			<li><strong>SNP totals / reference - </strong>When zoomed out, shows SNP density, summed by alignment column and scaled by its own maximum within the current zoom. When zoomed in, shows the reference sequence.</li><br/>
+			<li><strong>Phylogenetic tree - </strong>Use the scroll wheel or click to zoom in on particular clades. To zoom out, use the scroll wheel or click wherever the cursor is an up-arrow (outside zoomable clades). Click on a leaf to enlarge the surrounding leaves, and click again to shrink. Right-click to:
+				<ul>
+					<li>Set a clade or leaf as the out-group</li>
+					<li>Export internal variants for a clade (VCF containing only positions that vary among clade members, and columns only for clade members)<li
+					<li>Export signature variants for a clade (VCF containing only positions that are consistent among clade members but different outside of the clade; all columns will still be included)<li>
+				</ul>
+			</li><br/>
+			<li><strong>SNP heatmap - </strong>Shows SNP density across each genome, scaled by the maximum density at the current zoom. Zoom in with the scroll wheel to see more detail or alignments. Click a track to enlarge the surrounding tracks, and click again to shrink. Right-click to set a track as the variant reference.</li><br/>
+			<li><strong>Selected genome - </strong>If genomes are too condensed to see, they can be clicked on (either in the phylogenetic tree or the SNP heatmap) to expand them and their neighbors. Click the selected genome again to unselect.</li><br/>
+			<li><strong>Genome name - </strong>The name of the genome currently under the cursor.</li><br/>
+			<li><strong>Branch length - </strong>The phylogenetic branch length of the leaf or other node currently under the cursor.</li><br/>
+			<li><strong>Bootstrap - </strong>The bootstrap value of the phylogenetic node currently under the cursor.</li><br/>
+			<li><strong>Track count - </strong>The number of genomes in the alignment or leaves in the tree.</li><br/>
+			<li><strong>Core percentage - </strong>Shows the percentage of the reference that is covered by core alignments, colored by expected ranges. At or above 50% is good (green); at or above 30% is marnigal (yellow); below 30% (red) should be scrutinized.</li><br/>
+			<li><strong>Reference position - </strong>The (ungapped) reference position currently under the cursor. This position will not change in insertions relative to the reference genome (see "Insertion offset").</li><br/>
+			<li><strong>Insertion offset - </strong>If the cursor is over an insertion relative to the reference, the current position within it, starting from 1 at the first inserted position.</li><br/>
+			<li><strong>Heatmap legend - </strong>The color gamut of the SNP heatmap, with increasing SNP density from left to right. The rightmost color represents densities beyond the current maximum, which can be seen in the heatmap when adjusting filters in the Variant window. When zoomed to alignments, the legend will show nucleotide color codes, with reference nucleotides on the left and variants (matching the current filter settings) to the right.</li><br/>
+		</ol>
+		<h2 id="menu">Menus (<a href="#">back to Contents</a>)</h2>
+		<ul>
+			<li><strong>File</strong>
+				<ul>
+					<li><p><strong>New</strong> - Create a new workspace, clearing any currently loaded files.</p>
+					</li>
+					<li><p><strong>Open</strong> - Open a Gingr workspace or other data file. If the file can be imported with a reference or has an unrecognized extension, the Open window (below) will prompt for more information and provide a preview of the contents of the file. Opening a Gingr file will clear any currently loaded files.</p>
+						<p><img src="img/open.jpg"/></p>
+					</li>
+					<li><p><strong>Save</strong> - Save the current workspace as a Gingr (.ggr) file. The Gingr file encapsulates all the information displayed in the workspace and is not dependent on the imported files. Files exported from the Gingr workspace, however, may not contain as much information as the original imported files (see import and export options below).</p>
+					</li>
+					<li><p><strong>Save as</strong> - Save the current workspace as a Gingr (.ggr) file as above, prompting for a new name.</p>
+					</li>
+					<li><p><strong>Export alignment (XMFA)</strong> - Export the multiple alignment in the Parsnp version of the eXtended Multi-FastA format. If the multiple alignment was imported via MFA or VCF, the alignment will be contained in a single LCB (Locally Collinear Block). Note that Gingr stores core alignments only, so if an XMFA file was imported, the exported version will only contain LCBs that involved all tracks in the original file.</p>
+					</li>
+					<li><p><strong>Export tree (Newick)</strong> - Export the phylogenetic tree in Newick format.</p>
+					</li>
+					<li><p><strong>Export variants (MFA)</strong> - Export a special Multi-FastA alignment file that only contains columns with variants, ignoring columns associated with filters other than the "N" filter. This format does not contain positional information and is mostly useful for building phylogenetic trees.</p>
+					</li>
+					<li><p><strong>Export variants (VCF)</strong> - Export variant columns of the multiple alignment in the Variant Call Format. Note that VCF cannot represent aligned indels, so only columns without gaps will be output.</p>
+					</li>
+					<li><p><strong>Snapshot</strong> - Opens a dialog for saving the phylogenetic tree and SNP heatmap as images.</p>
+						<p><img src="img/snapshot.jpg"/></p>
+					</li>
+				</ul>
+			</li>
+			<li><strong>Tree</strong>
+				<ul>
+					<li><p><strong>Reroot at midpoint</strong> - Balances the tree at the center of the longest path.</p>
+					<li><p><strong>Adjust branch lengths</strong> - Toggles whether the branch lengths shown in the status bar (or exported to Newick) are adjusted to account for total core size (since trees are typically generated with variant columns only). Note that this option will only be available for Gingr files generated by Parsnp version 1.1 or later, or with harvesttools using the -u flag.</p>
+					</li>
+				</ul>
+			<li><strong>View</strong>
+				<ul>
+					<li><strong>Synteny</strong> - Toggles synteny coloring, which shows rearrangements implicitly by coloring LCBs by their positions in the core of each genome.
+						<p><img src="img/synteny.jpg"/></p><li>
+					<!--
+					<li><p><strong>Right-align clades</strong> - Toggles movement of each clade in the phylogenetic tree as far to the right as possible.</p></li>
+					-->
+					<li><p><strong>Right-align labels</strong> - Toggles right-alignment for the text of the labels.</p></li>
+					<!--
+					<li><p><strong>Highlight gaps - </strong>Toggles highlighting of gaps in the SNP heatmap.</p></li>
+					<ul>
+						<li><p><strong>...for insertions - </strong>Toggles highlighting of insertions when gaps are highlighted in the SNP heatmap.</p></li>
+						<li><p><strong>...for deletions - </strong>Toggles highlighting of deletions when gaps are highlighted in the SNP heatmap.</p></li>
+					</ul>
+					-->
+					<li><p><strong>Light colors</strong> - Toggles the use of a light color scheme for the SNP heatmap (and alignment, when zoomed).</p></li>
+				</ul>
+			</li>
+			<li><strong>Window</strong>
+				<ul>
+					<li><p><strong>Variants</strong> - Opens the Variants dialog, which controls filters that are applied to the SNP heatmap. If PASS is checked, SNPs that are not marked with any filters will be shown. If other filters are checked, SNPs marked with those filters will be shown. The Scale button changes the scale of the heatmap colors to the match the maximum SNP density with the current filters applied.</p>
+						<p><img src="img/variants.jpg"/></p>
+					</li>
+					<li><p><strong>Find</strong> - Opens the Find dialog, which allows track names and annotations to be highlighted based on search terms.</p>
+						<p><img src="img/find.jpg"/></p>
+					</li>
+				</ul>
+			</li>
+		</ul>
+		<h2>(<a href="#">back to Contents</a>)</h2>
+	</body>
+</html>
