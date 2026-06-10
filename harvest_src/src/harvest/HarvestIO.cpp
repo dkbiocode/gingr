@@ -24,9 +24,16 @@
 #include <algorithm>
 #include <thread>
 #include "ThreadPipe.h"
+#include "ThreadPipeStream.h"
 
 // Use threading instead of fork() for cross-platform compatibility
 #define USE_THREADING 1
+
+// Forward declarations for threading functions
+#if USE_THREADING
+static int infThreaded(int fdSource, ThreadPipe* pipeDest);
+static int defThreaded(ThreadPipe* pipeSource, int fdDest, int level);
+#endif
 
 #define SET_BINARY_MODE(file)
 
@@ -85,73 +92,74 @@ bool HarvestIO::loadHarvest(const char * file)
 }
 
 #if USE_THREADING
-// Helper function: decompress file and write to pipe (runs in separate thread)
+// Helper function: decompress file and write to ThreadPipe (runs in separate thread)
 // This replaces the child process in the fork() version
-static void decompressToPipe(const char* file, int fdWrite) {
+static void decompressToThreadPipe(const char* file, ThreadPipe* pipe) {
 	int fd = open(file, O_RDONLY);
 
 	if ( fd < 0 )
 	{
 		cerr << "ERROR: could not open " << file << " for reading.\n";
-		close(fdWrite);
+		pipe->setError();
+		pipe->closeWrite();
 		return;
 	}
 
 	char buffer[1024];
 	read(fd, buffer, capnpHeaderLength);
 
-	int ret = inf(fd, fdWrite);
+	int ret = infThreaded(fd, pipe);
 	if (ret != Z_OK) {
 		zerr(ret);
+		pipe->setError();
 	}
 	close(fd);
-	close(fdWrite);
+	pipe->closeWrite();
 }
 
-// Helper function: read from pipe and compress to file (runs in separate thread)
+// Helper function: read from ThreadPipe and compress to file (runs in separate thread)
 // This replaces the child process in the fork() version
-static void compressFromPipe(const char* file, int fdRead) {
+static void compressFromThreadPipe(const char* file, ThreadPipe* pipe) {
 	int fd = open(file, O_CREAT | O_WRONLY | O_TRUNC, 0644);
 
 	if ( fd < 0 )
 	{
 		cerr << "ERROR: could not open " << file << " for writing.\n";
-		close(fdRead);
+		pipe->setError();
 		return;
 	}
 
 	// write header
 	write(fd, capnpHeader, capnpHeaderLength);
 
-	int ret = def(fdRead, fd, Z_DEFAULT_COMPRESSION);
+	int ret = defThreaded(pipe, fd, Z_DEFAULT_COMPRESSION);
 	if (ret != Z_OK) {
 		zerr(ret);
+		pipe->setError();
 	}
 	close(fd);
-	close(fdRead);
 }
 #endif
 
 bool HarvestIO::loadHarvestCapnp(const char * file)
 {
+#if USE_THREADING
+	// Use ThreadPipe for cross-platform compatibility
+	ThreadPipe pipe;
+
+	// Launch decompression thread
+	std::thread decompressThread(decompressToThreadPipe, file, &pipe);
+#else
 	// use a pipe to decompress input to Cap'n Proto
 
 	int fds[2];
-	int piped = pipe(fds);
+	int piped = ::pipe(fds);
 
 	if ( piped < 0 )
 	{
 		cerr << "ERROR: could not open pipe for decompression\n";
 		return 1;
 	}
-
-#if USE_THREADING
-	// Use threading instead of fork() for cross-platform compatibility
-	std::thread decompressThread(decompressToPipe, file, fds[1]);
-
-	// Note: Don't close fds[1] here! Threads share file descriptors.
-	// The child thread will close it when done.
-#else
 	int forked = fork();
 
 	if ( forked < 0 )
@@ -208,18 +216,25 @@ bool HarvestIO::loadHarvestCapnp(const char * file)
 
 	close(fds[1]); // other process's end of pipe
 #endif
-	
+
 	capnp::ReaderOptions readerOptions;
-	
+
 	readerOptions.traversalLimitInWords = 1000000000000;
 	readerOptions.nestingLimit = 1000000;
-	
+
 	//char buffer[1024];
 	//read(fds[0], buffer, 1024);
 	//printf("data: %s\n", buffer);
 	//return true;
-	
+
+#if USE_THREADING
+	// Use ThreadPipe stream adapter for cross-platform compatibility
+	ThreadPipeInputStream pipeStream(&pipe);
+	kj::BufferedInputStreamWrapper bufferedStream(pipeStream);
+	capnp::InputStreamMessageReader message(bufferedStream, readerOptions);
+#else
 	capnp::StreamFdMessageReader message(fds[0], readerOptions);
+#endif
 	
 	capnp::Harvest::Reader harvestReader = message.getRoot<capnp::Harvest>();
 	
@@ -250,11 +265,11 @@ bool HarvestIO::loadHarvestCapnp(const char * file)
 		variantList.initFromCapnp(harvestReader);
 	}
 
-	close(fds[0]);
-
 #if USE_THREADING
 	// Wait for decompression thread to finish
 	decompressThread.join();
+#else
+	close(fds[0]);
 #endif
 
 	return true;
@@ -354,24 +369,23 @@ void HarvestIO::writeFasta(std::ostream &out) const
 
 void HarvestIO::writeHarvest(const char * file)
 {
+#if USE_THREADING
+	// Use ThreadPipe for cross-platform compatibility
+	ThreadPipe pipe;
+
+	// Launch compression thread
+	std::thread compressThread(compressFromThreadPipe, file, &pipe);
+#else
 	// use a pipe to compress Cap'n Proto output
 
 	int fds[2];
-	int piped = pipe(fds);
+	int piped = ::pipe(fds);
 
 	if ( piped < 0 )
 	{
 		cerr << "ERROR: could not open pipe for compression\n";
 		exit(1);
 	}
-
-#if USE_THREADING
-	// Use threading instead of fork() for cross-platform compatibility
-	std::thread compressThread(compressFromPipe, file, fds[0]);
-
-	// Note: Don't close fds[0] here! Threads share file descriptors.
-	// The child thread will close it when done.
-#else
 	int forked = fork();
 
 	if ( forked < 0 )
@@ -428,7 +442,7 @@ void HarvestIO::writeHarvest(const char * file)
 	close(fds[1]);
 	return;
 	*/
-	
+
 	capnp::MallocMessageBuilder message;
 	capnp::Harvest::Builder harvestBuilder = message.initRoot<capnp::Harvest>();
 	
@@ -462,19 +476,30 @@ void HarvestIO::writeHarvest(const char * file)
 	//write(fds[1], capnpHeader, capnpHeaderLength);
 	
 	//write(fds[1], "hello", 5);
+#if USE_THREADING
+	// Use ThreadPipe stream adapter for cross-platform compatibility
+	{
+		ThreadPipeOutputStream pipeStream(&pipe);
+		kj::BufferedOutputStreamWrapper bufferedStream(pipeStream);
+		capnp::writeMessage(bufferedStream, message);
+	}
+	// Close the write end so compression thread knows we're done
+	pipe.closeWrite();
+#else
 	writeMessageToFd(fds[1], message);
-	
+	close(fds[1]);
+#endif
+
 //	FileOutputStream stream(fd);
 //	GzipOutputStream zip_stream(&stream);
-	
+
 //	if ( ! harvest.SerializeToZeroCopyStream(&zip_stream) )
 //	{
 //		printf("Failed to write.\n");
 //	}
-	
+
 //	zip_stream.Close();
 //	stream.Close();
-	close(fds[1]);
 
 #if USE_THREADING
 	// Wait for compression thread to finish
@@ -755,7 +780,7 @@ void zerr(int ret)
 
 #if USE_THREADING
 /* Threading version: Decompress from file descriptor source to ThreadPipe dest */
-int infThreaded(int fdSource, ThreadPipe* pipeDest)
+static int infThreaded(int fdSource, ThreadPipe* pipeDest)
 {
     int ret;
     unsigned have;
@@ -776,7 +801,7 @@ int infThreaded(int fdSource, ThreadPipe* pipeDest)
     /* decompress until deflate stream ends or end of file */
     do {
         strm.avail_in = read(fdSource, in, CHUNK);
-        if (strm.avail_in == -1) {
+        if (strm.avail_in == (unsigned)-1) {
             (void)inflateEnd(&strm);
             return Z_ERRNO;
         }
@@ -814,7 +839,7 @@ int infThreaded(int fdSource, ThreadPipe* pipeDest)
 }
 
 /* Threading version: Compress from ThreadPipe source to file descriptor dest */
-int defThreaded(ThreadPipe* pipeSource, int fdDest, int level)
+static int defThreaded(ThreadPipe* pipeSource, int fdDest, int level)
 {
     int ret, flush;
     unsigned have;
