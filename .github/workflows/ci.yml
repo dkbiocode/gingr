@@ -58,7 +58,8 @@ jobs:
         shell: bash -l {0}
         run: |
           # Install common dependencies (no autoconf needed - using qmake!)
-          conda install -y qt=${{ matrix.qt-version }} protobuf capnproto
+          # libprotobuf provides C++ headers, protobuf is just Python bindings
+          conda install -y qt=${{ matrix.qt-version }} libprotobuf capnproto
 
       - name: Install platform-specific dependencies (Linux)
         if: runner.os == 'Linux'

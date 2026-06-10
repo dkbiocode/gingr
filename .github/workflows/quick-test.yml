@@ -33,7 +33,8 @@ jobs:
         shell: bash -l {0}
         run: |
           # Using qmake - no autoconf needed!
-          conda install -y qt protobuf capnproto
+          # libprotobuf provides C++ headers, protobuf is just Python bindings
+          conda install -y qt libprotobuf capnproto
           conda install -y gcc_linux-64 gxx_linux-64 mesa-libgl-devel-cos7-x86_64 libglvnd-glx-cos7-x86_64
 
       - name: Build Gingr with qmake
