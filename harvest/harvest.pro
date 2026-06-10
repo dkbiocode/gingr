@@ -18,13 +18,18 @@ MOC_DIR = build/moc
 # Include paths
 INCLUDEPATH += src
 
-# Conda include path - check gingr-build env first, then CONDA_PREFIX
-exists(/Users/david/miniconda3/envs/gingr-build/include) {
-    INCLUDEPATH += /Users/david/miniconda3/envs/gingr-build/include
-    message("Using gingr-build conda environment")
+# Conda include path - use CONDA_PREFIX environment variable
+# Windows uses Library/include subdirectory, Unix uses include directly
+win32 {
+    CONDA_INCLUDE = $$(CONDA_PREFIX)/Library/include
 } else {
-    INCLUDEPATH += $$quote($$(CONDA_PREFIX)/include)
-    message("Using CONDA_PREFIX: $$(CONDA_PREFIX)")
+    CONDA_INCLUDE = $$(CONDA_PREFIX)/include
+}
+!isEmpty(CONDA_INCLUDE) {
+    INCLUDEPATH += $$CONDA_INCLUDE
+    message("Using conda include path: $$CONDA_INCLUDE")
+} else {
+    warning("CONDA_PREFIX not set - protobuf/capnp headers may not be found")
 }
 
 # Platform-specific settings

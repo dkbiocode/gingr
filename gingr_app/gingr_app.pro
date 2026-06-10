@@ -4,7 +4,19 @@
 
 TEMPLATE = app
 DEPENDPATH += . src ../harvest/src
-INCLUDEPATH += . src ../harvest/src $$quote(/Users/david/miniconda3/envs/gingr-build/include)
+
+# Conda include path - use CONDA_PREFIX environment variable
+# Windows uses Library/include subdirectory, Unix uses include directly
+win32 {
+    CONDA_INCLUDE = $$(CONDA_PREFIX)/Library/include
+} else {
+    CONDA_INCLUDE = $$(CONDA_PREFIX)/include
+}
+INCLUDEPATH += . src ../harvest/src
+!isEmpty(CONDA_INCLUDE) {
+    INCLUDEPATH += $$CONDA_INCLUDE
+}
+
 QT += xml
 QT += widgets
 CONFIG += release c++17
