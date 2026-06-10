@@ -22,6 +22,11 @@
 #include <stdio.h>
 #include <assert.h>
 #include <algorithm>
+#include <thread>
+#include "ThreadPipe.h"
+
+// Use threading instead of fork() for cross-platform compatibility
+#define USE_THREADING 1
 
 #define SET_BINARY_MODE(file)
 
@@ -79,74 +84,130 @@ bool HarvestIO::loadHarvest(const char * file)
 	}
 }
 
+#if USE_THREADING
+// Helper function: decompress file and write to pipe (runs in separate thread)
+// This replaces the child process in the fork() version
+static void decompressToPipe(const char* file, int fdWrite) {
+	int fd = open(file, O_RDONLY);
+
+	if ( fd < 0 )
+	{
+		cerr << "ERROR: could not open " << file << " for reading.\n";
+		close(fdWrite);
+		return;
+	}
+
+	char buffer[1024];
+	read(fd, buffer, capnpHeaderLength);
+
+	int ret = inf(fd, fdWrite);
+	if (ret != Z_OK) {
+		zerr(ret);
+	}
+	close(fd);
+	close(fdWrite);
+}
+
+// Helper function: read from pipe and compress to file (runs in separate thread)
+// This replaces the child process in the fork() version
+static void compressFromPipe(const char* file, int fdRead) {
+	int fd = open(file, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+
+	if ( fd < 0 )
+	{
+		cerr << "ERROR: could not open " << file << " for writing.\n";
+		close(fdRead);
+		return;
+	}
+
+	// write header
+	write(fd, capnpHeader, capnpHeaderLength);
+
+	int ret = def(fdRead, fd, Z_DEFAULT_COMPRESSION);
+	if (ret != Z_OK) {
+		zerr(ret);
+	}
+	close(fd);
+	close(fdRead);
+}
+#endif
+
 bool HarvestIO::loadHarvestCapnp(const char * file)
 {
 	// use a pipe to decompress input to Cap'n Proto
-	
+
 	int fds[2];
 	int piped = pipe(fds);
-	
+
 	if ( piped < 0 )
 	{
 		cerr << "ERROR: could not open pipe for decompression\n";
 		return 1;
 	}
-	
+
+#if USE_THREADING
+	// Use threading instead of fork() for cross-platform compatibility
+	std::thread decompressThread(decompressToPipe, file, fds[1]);
+
+	// Note: Don't close fds[1] here! Threads share file descriptors.
+	// The child thread will close it when done.
+#else
 	int forked = fork();
-	
+
 	if ( forked < 0 )
 	{
 		cerr << "ERROR: could not fork for decompression\n";
 		return 1;
 	}
-	
+
 	if ( forked == 0 )
 	{
 		// read from zipped fd and write to pipe
-		
+
 		close(fds[0]); // other process's end of pipe
-		
+
 		int fd = open(file, O_RDONLY);
-		
+
 		if ( fd < 0 )
 		{
 			cerr << "ERROR: could not open " << file << " for reading.\n";
 			_exit(1);
 		}
-		
+
 		char buffer[1024];
-		
+
 		read(fd, buffer, capnpHeaderLength);
-		
+
 		int ret = inf(fd, fds[1]);
 		if (ret != Z_OK) zerr(ret);
 		close(fd);
 		_exit(ret);
-		
+
 		gzFile fileIn = gzopen(file, "rb");
-		
+
 		int bytesRead;
-		
+
 		// eat header
 		//
 		//gzseek(fileIn, capnpHeaderLength, SEEK_SET);
 		gzread(fileIn, buffer, capnpHeaderLength);
-		
+
 		printf("header: %s\n", buffer);
 		while ( (bytesRead = gzread(fileIn, buffer, sizeof(buffer))) > 0)
 		{
 			printf("uncompressed: %s\n", buffer);
 			write(fds[1], buffer, bytesRead);
 		}
-		
+
 		gzclose(fileIn);
 		close(fds[1]);
 		_exit(0);
 	}
-	
+
 	// read from pipe
-	
+
 	close(fds[1]); // other process's end of pipe
+#endif
 	
 	capnp::ReaderOptions readerOptions;
 	
@@ -188,8 +249,14 @@ bool HarvestIO::loadHarvestCapnp(const char * file)
 	{
 		variantList.initFromCapnp(harvestReader);
 	}
-	
+
 	close(fds[0]);
+
+#if USE_THREADING
+	// Wait for decompression thread to finish
+	decompressThread.join();
+#endif
+
 	return true;
 }
 
@@ -288,66 +355,74 @@ void HarvestIO::writeFasta(std::ostream &out) const
 void HarvestIO::writeHarvest(const char * file)
 {
 	// use a pipe to compress Cap'n Proto output
-	
+
 	int fds[2];
 	int piped = pipe(fds);
-	
+
 	if ( piped < 0 )
 	{
 		cerr << "ERROR: could not open pipe for compression\n";
 		exit(1);
 	}
-	
+
+#if USE_THREADING
+	// Use threading instead of fork() for cross-platform compatibility
+	std::thread compressThread(compressFromPipe, file, fds[0]);
+
+	// Note: Don't close fds[0] here! Threads share file descriptors.
+	// The child thread will close it when done.
+#else
 	int forked = fork();
-	
+
 	if ( forked < 0 )
 	{
 		cerr << "ERROR: could not fork for compression\n";
 		exit(1);
 	}
-	
+
 	if ( forked == 0 )
 	{
 		// read from pipe and write to compressed file
-		
+
 		close(fds[1]); // other process's end of pipe
-		
+
 		int fd = open(file, O_CREAT | O_WRONLY | O_TRUNC, 0644);
-		
+
 		if ( fd < 0 )
 		{
 			cerr << "ERROR: could not open " << file << " for writing.\n";
 			_exit(1);
 		}
-		
+
 		// write header
 		//
 		write(fd, capnpHeader, capnpHeaderLength);
 		//close(fd);
-		
+
 		int ret = def(fds[0], fd, Z_DEFAULT_COMPRESSION);
 		if (ret != Z_OK) zerr(ret);
         _exit(ret);
-        
+
 		char buffer[1024];
 		gzFile fileOut = gzopen(file, "ab");
-		
+
 		int bytesRead;
-		
+
 		while ( (bytesRead = read(fds[0], buffer, sizeof(buffer))) > 0)
 		{
 			printf("compressing: %s\n", buffer);
 			gzwrite(fileOut, buffer, bytesRead);
 		}
-		
+
 		gzclose(fileOut);
 		close(fds[0]);
 		_exit(0);
 	}
-	
+
 	// write to pipe
-	
+
 	close(fds[0]); // other process's end of pipe
+#endif
 	/*
 	write(fds[1], "test\n", 5);
 	close(fds[1]);
@@ -400,7 +475,12 @@ void HarvestIO::writeHarvest(const char * file)
 //	zip_stream.Close();
 //	stream.Close();
 	close(fds[1]);
-	
+
+#if USE_THREADING
+	// Wait for compression thread to finish
+	compressThread.join();
+#endif
+
 //	harvest.Clear();
 //	google::protobuf::ShutdownProtobufLibrary();
 }
@@ -672,3 +752,116 @@ void zerr(int ret)
         fputs("zlib version mismatch!\n", stderr);
     }
 }
+
+#if USE_THREADING
+/* Threading version: Decompress from file descriptor source to ThreadPipe dest */
+int infThreaded(int fdSource, ThreadPipe* pipeDest)
+{
+    int ret;
+    unsigned have;
+    z_stream strm;
+    unsigned char in[CHUNK];
+    unsigned char out[CHUNK];
+
+    /* allocate inflate state */
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    strm.avail_in = 0;
+    strm.next_in = Z_NULL;
+    ret = inflateInit(&strm);
+    if (ret != Z_OK)
+        return ret;
+
+    /* decompress until deflate stream ends or end of file */
+    do {
+        strm.avail_in = read(fdSource, in, CHUNK);
+        if (strm.avail_in == -1) {
+            (void)inflateEnd(&strm);
+            return Z_ERRNO;
+        }
+        if (strm.avail_in == 0)
+            break;
+        strm.next_in = in;
+
+        /* run inflate() on input until output buffer not full */
+        do {
+            strm.avail_out = CHUNK;
+            strm.next_out = out;
+            ret = inflate(&strm, Z_NO_FLUSH);
+            assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
+            switch (ret) {
+            case Z_NEED_DICT:
+                ret = Z_DATA_ERROR;     /* and fall through */
+            case Z_DATA_ERROR:
+            case Z_MEM_ERROR:
+                (void)inflateEnd(&strm);
+                return ret;
+            }
+            have = CHUNK - strm.avail_out;
+            if (pipeDest->write(out, have) != (ssize_t)have) {
+                (void)inflateEnd(&strm);
+                return Z_ERRNO;
+            }
+        } while (strm.avail_out == 0);
+
+        /* done when inflate() says it's done */
+    } while (ret != Z_STREAM_END);
+
+    /* clean up and return */
+    (void)inflateEnd(&strm);
+    return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
+}
+
+/* Threading version: Compress from ThreadPipe source to file descriptor dest */
+int defThreaded(ThreadPipe* pipeSource, int fdDest, int level)
+{
+    int ret, flush;
+    unsigned have;
+    z_stream strm;
+    unsigned char in[CHUNK];
+    unsigned char out[CHUNK];
+
+    /* allocate deflate state */
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    ret = deflateInit(&strm, level);
+    if (ret != Z_OK)
+        return ret;
+
+    /* compress until end of pipe */
+    do {
+        ssize_t bytes_read = pipeSource->read(in, CHUNK);
+        if (bytes_read < 0) {
+            (void)deflateEnd(&strm);
+            return Z_ERRNO;
+        }
+        strm.avail_in = bytes_read;
+        flush = bytes_read == 0 ? Z_FINISH : Z_NO_FLUSH;
+        strm.next_in = in;
+
+        /* run deflate() on input until output buffer not full, finish
+           compression if all of source has been read in */
+        do {
+            strm.avail_out = CHUNK;
+            strm.next_out = out;
+            ret = deflate(&strm, flush);    /* no bad return value */
+            assert(ret != Z_STREAM_ERROR);  /* state not clobbered */
+            have = CHUNK - strm.avail_out;
+            if (write(fdDest, out, have) != have) {
+                (void)deflateEnd(&strm);
+                return Z_ERRNO;
+            }
+        } while (strm.avail_out == 0);
+        assert(strm.avail_in == 0);     /* all input will be used */
+
+        /* done when last data in file processed */
+    } while (flush != Z_FINISH);
+    assert(ret == Z_STREAM_END);        /* stream will be complete */
+
+    /* clean up and return */
+    (void)deflateEnd(&strm);
+    return Z_OK;
+}
+#endif
