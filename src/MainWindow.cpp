@@ -571,7 +571,7 @@ void MainWindow::rerootTree(const PhylogenyTreeNode * rootNew)
 	
 	if ( rowFocus != -1 )
 	{
-		for ( int i = 0; i < leafIds.size(); i++ )
+		for ( size_t i = 0; i < leafIds.size(); i++ )
 		{
 			if ( leafIds[i] == rowFocus )
 			{
@@ -762,7 +762,7 @@ void MainWindow::saveSnapshot(const QString & fileName, bool tree, bool alignmen
 	
 	if ( alignment )
 	{
-		QPixmap pixmapAlignment = QPixmap::grabWidget(blockViewMain, 0, 0);
+		QPixmap pixmapAlignment = blockViewMain->grab();
 		painter.drawImage(x, 0, *blockViewMain->getBuffer());
 	}
 	
@@ -2202,10 +2202,10 @@ void MainWindow::setDefaultDirectoryFromFile(const QString &file)
 
 void MainWindow::updateTrackHeights(bool setTargets)
 {
-	int radius = 4;
+	constexpr int radius = 4;  // Make compile-time constant to avoid VLA
 	float trackHeightLast = (float)(treeViewMain->getHeight() - 150) / (trackZoomEndLast - trackZoomStartLast + 1);
 	trackHeights[0] = 0;
-	
+
 	float zoomHeights[radius * 2 + 1];
 	
 	for ( int i = 0; i < radius * 2 + 1; i++ )

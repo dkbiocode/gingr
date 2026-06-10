@@ -147,7 +147,7 @@ void PhylogenyTreeView::setNames(QVector<QString> *newNames)
 	
 	for ( int i = 0; i < nameBufferCount; i++ )
 	{
-		int width = fm.width((*names)[i]);
+		int width = fm.horizontalAdvance((*names)[i]);
 		fontHeight = fm.height();
 		int height = fontHeight;
 		
@@ -750,7 +750,7 @@ void PhylogenyTreeView::drawNode(QPainter * painter, const PhylogenyTreeNode *no
 	}
 }
 
-void PhylogenyTreeView::drawNodeLeaf(QPainter * painter, const PhylogenyTreeNode * node, float highlight, float weightTop, float weightBottom) const
+void PhylogenyTreeView::drawNodeLeaf(QPainter * painter, const PhylogenyTreeNode * node, float highlight, float /* weightTop */, float /* weightBottom */) const
 {
 	PhylogenyTreeNodeView & nodeView = nodeViews[node->getId()];
 	
@@ -989,7 +989,7 @@ float PhylogenyTreeView::getNodeDepth(const PhylogenyTreeNode *node) const
 	return zoomLerp(start, end);
 }
 
-void PhylogenyTreeView::fillGradient(QPixmap *pixmap, QColor colorStart, QColor colorEnd)
+void PhylogenyTreeView::fillGradient(QPixmap *pixmap, QColor /* colorStart */, QColor colorEnd)
 {
 	pixmap->fill(Qt::transparent);
 	QPainter painter(pixmap);

@@ -7,6 +7,7 @@
 #include "Alignment.h"
 #include <QObject>
 #include <QStringList>
+#include <algorithm>
 
 using namespace gav;
 
@@ -184,7 +185,9 @@ Alignment::Position Alignment::getPositionUngapped(long long int gapped) const
 	
 	return pos;
 	}catch (const std::out_of_range& oor) {
-		std::cerr << "Out of Range error: " << oor.what() << '\n';
+		std::cerr << "Out of Range error in getPositionUngapped: " << oor.what() << '\n';
+		Position errorPos = {-1, -1};  // Return invalid position on error
+		return errorPos;
 	}
 }
 
@@ -217,7 +220,7 @@ bool Alignment::init(const LcbList & lcbList, const VariantList & variantList, c
 		
 		QVector<Region *> * regions = new QVector<Region *>(lcb.regions.size());
 		
-		for ( int j = 0; j < lcb.regions.size(); j++ )
+		for ( size_t j = 0; j < lcb.regions.size(); j++ )
 		{
 			const LcbList::Region & lcbRegion = lcb.regions.at(j);
 			
@@ -248,7 +251,7 @@ bool Alignment::init(const LcbList & lcbList, const VariantList & variantList, c
 	
 	for ( int i = 0; i < tracks.size(); i++ )
 	{
-		qSort(tracks[i]->begin(), tracks[i]->end(), Region::lessThan);
+		std::sort(tracks[i]->begin(), tracks[i]->end(), Region::lessThan);
 		
 		// determine total length
 		//
@@ -393,7 +396,7 @@ bool Alignment::init(const LcbList & lcbList, const VariantList & variantList, c
 	
 	core = (float)coreSize / refSeq.length();
 	
-	qSort(lcbs.begin(), lcbs.end(), lcbLessThan);
+	std::sort(lcbs.begin(), lcbs.end(), lcbLessThan);
 	
 	totalLength = refSeq.length() + gapsTotal;
 	

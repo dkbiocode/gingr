@@ -152,19 +152,17 @@ inline bool Alignment::getFilterPassScale() const {return filterPassScale;}
 inline unsigned int Alignment::getFilters() const {return filterFlags;}
 inline unsigned int Alignment::getFiltersScale() const {return filterFlagsScale;}
 inline const RegionTable * Alignment::getTracks() const {return &tracks;}
-inline const Alignment::Lcb & Alignment::getLcb(int index) const {try{return lcbs[index];		}catch (const std::out_of_range& oor) {
-	std::cerr << "Out of Range error: " << oor.what() << '\n';
-}
+inline const Alignment::Lcb & Alignment::getLcb(int index) const {
+	return lcbs.at(index);  // Use .at() for bounds checking, let exception propagate
 }
 inline int Alignment::getLcbCount() const {return lcbs.size();}
 inline int Alignment::getLength() const {return totalLength;}
 inline int Alignment::getRefSeqCount() const {return refSeqCount;}
 inline const char * Alignment::getRefSeqGapped() const {return refSeqGapped;}
 inline long long int Alignment::getRefSeqStart(int seq) const {return refSeqStarts[seq];}
-inline const Alignment::SnpColumn & Alignment::getSnpColumn(int index) const {try{return snpColumns.at(index);		}catch (const std::out_of_range& oor) {
-	std::cerr << "Out of Range error: " << oor.what() << '\n';
+inline const Alignment::SnpColumn & Alignment::getSnpColumn(int index) const {
+	return snpColumns.at(index);  // Use .at() for bounds checking, let exception propagate
 }
-};
 inline int Alignment::getSnpColumnCount() const {return snpColumns.size();}
 inline int Alignment::getTrackReference() const {return trackReference;}
 inline void Alignment::setFilterPass(bool pass) {filterPass = pass;}

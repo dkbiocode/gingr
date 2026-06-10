@@ -25,7 +25,7 @@ public:
 	bool getLcbRc(int lcb) const;
 	float getOffset() const;
 	bool getRc() const;
-	void initialize(const RegionVector * refByLcb, const RegionVector * newTrack, unsigned int refSize, float newOffsetY, float newHeight);
+	void initialize(const RegionVector * refByLcb, const RegionVector * newTrack, unsigned int refSize, float /* newOffsetY */, float /* newHeight */);
 	
 private:
 	

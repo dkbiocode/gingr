@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <string.h>
 #include <QtCore/qmath.h>
+#include <vector>
 
 BlockView::BlockView()
 : TrackListView()
@@ -251,14 +252,11 @@ void BlockView::drawSequence(int trackStart, int trackEnd) const
 		drawSequenceRef(&imageRef, baseBufferRef, baseBufferSnp, &gapImage, firstSnp);
 	}
 	
-	const BaseBuffer * baseBuffersTall[getTrackCount()];
-	const BaseBuffer * baseBuffersTallSnp[getTrackCount()];
-	const BaseImage * gapImagesTall[getTrackCount()];
+	int trackCount = getTrackCount();
+	std::vector<const BaseBuffer *> baseBuffersTall(trackCount, nullptr);
+	std::vector<const BaseBuffer *> baseBuffersTallSnp(trackCount, nullptr);
+	std::vector<const BaseImage *> gapImagesTall(trackCount, nullptr);
 	//	const BaseImage * gapImage = 0;
-	
-	memset(baseBuffersTall, 0, sizeof(BaseBuffer *) * getTrackCount());
-	memset(baseBuffersTallSnp, 0, sizeof(BaseBuffer *) * getTrackCount());
-	memset(gapImagesTall, 0, sizeof(BaseImage *) * getTrackCount());
 	
 	for ( int i = trackStart; i <= trackEnd; i++ )
 	{

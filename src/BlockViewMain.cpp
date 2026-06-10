@@ -285,7 +285,7 @@ void BlockViewMain::wheelEvent(QWheelEvent * event)
 	if ( alignment && getCursorX() != -1 )
 	{
 		mouseVelocity = 0;
-		emit signalMouseWheel(event->delta());
+		emit signalMouseWheel(event->angleDelta().y());
 	}
 }
 

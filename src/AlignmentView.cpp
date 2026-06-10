@@ -398,9 +398,9 @@ void AlignmentView::drawLcbs(QPainter *painter, int id1, int id2)
 	
 	for ( int i = 0; i < track1->size(); i++ )
 	{
-		int index1;
-		int index2;
-		
+		int index1 = 0;
+		int index2 = 0;
+
 		indexLast1 = index1;
 		indexLast2 = index2;
 	}

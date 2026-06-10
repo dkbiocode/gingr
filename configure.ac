@@ -53,4 +53,6 @@ fi
 AC_SUBST(capnp, $with_capnp)
 AC_SUBST(protobuf, $with_protobuf)
 AC_SUBST(harvest, $with_harvest)
-AC_OUTPUT(gingr.pro)
+
+AC_CONFIG_FILES([gingr.pro])
+AC_OUTPUT

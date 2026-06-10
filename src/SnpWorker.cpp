@@ -8,6 +8,7 @@
 #include <QThread>
 #include <QImage>
 #include <QPainter>
+#include <vector>
 
 SnpWorker::SnpWorker
 (
@@ -28,8 +29,8 @@ palette(newPalette),
 paletteSynteny(newPaletteSynteny)
 {
 	trackById = new int[idByTrack->size()];
-	
-	for ( int i = 0; i < idByTrack->size(); i++ )
+
+	for ( size_t i = 0; i < idByTrack->size(); i++ )
 	{
 		trackById[idByTrack->at(i)] = i;
 	}
@@ -591,12 +592,12 @@ void SnpWorker::drawSynteny()
 			continue;
 		}
 		
-		if ( true || regions[0]->getStart() < data->getPosEnd() && regions[0]->getStart() + regions[0]->getLength() > data->getPosStart() )
+		if ( true || (regions[0]->getStart() < data->getPosEnd() && regions[0]->getStart() + regions[0]->getLength() > data->getPosStart()) )
 		{
 			int binStart = posStartLcb < start ? 0 : (posStartLcb - start) * binWidth;
 			int binEnd = posEndLcb > end ? bins - 1 : (posEndLcb - start) * binWidth;
 			
-			float startScaledRef = regions[alignment->getTrackReference()]->getStartScaled();
+			// float startScaledRef = regions[alignment->getTrackReference()]->getStartScaled();  // Unused debug variable
 			bool refRc = regions[alignment->getTrackReference()]->getRc();
 			
 			for ( int j = 0; j < alignment->getTracks()->size(); j++ )
@@ -663,9 +664,7 @@ int SnpWorker::max(int * row, int seed)
 void SnpWorker::smooth(int * src)
 {
 	int bins = data->getBins();
-	int dst[bins];
-	
-	memset(dst, 0, bins * sizeof(int));
+	std::vector<int> dst(bins, 0);  // Initialize with zeros
 	
 	for ( int i = 0; i < bins; i++ )
 	{
@@ -705,5 +704,5 @@ void SnpWorker::smooth(int * src)
 		}
 	}
 	
-	memcpy(src, dst, bins * sizeof(int));
+	memcpy(src, dst.data(), bins * sizeof(int));
 }

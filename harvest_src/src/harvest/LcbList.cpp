@@ -167,8 +167,8 @@ void LcbList::initFromMaf(const char * file, ReferenceList * referenceList, Trac
 	
 	if ( referenceFileName )
 	{
-		char referenceBaseName[strlen(referenceFileName)];
-		
+		std::vector<char> referenceBaseName(strlen(referenceFileName) + 1);
+
 		for ( const char * i = referenceFileName; *i != 0; i++ )
 		{
 			if ( *i == '/' )
@@ -176,15 +176,15 @@ void LcbList::initFromMaf(const char * file, ReferenceList * referenceList, Trac
 				referenceFileName = i + 1;
 			}
 		}
-		
-		strcpy(referenceBaseName, referenceFileName);
-		strtok(referenceBaseName, ".");
+
+		strcpy(referenceBaseName.data(), referenceFileName);
+		strtok(referenceBaseName.data(), ".");
 		
 		int trackIndex;
 		
 		try
 		{
-			trackIndex = trackList->getTrackIndexByFile(referenceBaseName);
+			trackIndex = trackList->getTrackIndexByFile(referenceBaseName.data());
 		}
 		catch ( const TrackList::TrackNotFoundException & e )
 		{
@@ -195,7 +195,7 @@ void LcbList::initFromMaf(const char * file, ReferenceList * referenceList, Trac
 			}
 			else
 			{
-				trackIndex = trackList->addTrack(referenceBaseName);
+				trackIndex = trackList->addTrack(referenceBaseName.data());
 			}
 		}
 		

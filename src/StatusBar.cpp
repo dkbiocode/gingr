@@ -12,7 +12,7 @@ StatusBar::StatusBar(QWidget * parent)
 {
 }
 
-void StatusBar::setPosition(int gapped, int ungapped, int offset)
+void StatusBar::setPosition(int /* gapped */, int ungapped, int offset)
 {
 	if ( offset )
 	{

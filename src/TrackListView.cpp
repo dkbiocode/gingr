@@ -38,8 +38,8 @@ void TrackListView::setIdByTrack(const std::vector<int> * newIdByTrack)
 	idByTrack = newIdByTrack;
 	
 	trackById.resize(idByTrack->size());
-	
-	for ( int i = 0; i < idByTrack->size(); i++ )
+
+	for ( size_t i = 0; i < idByTrack->size(); i++ )
 	{
 		trackById[(*idByTrack)[i]] = i;
 	}

@@ -63,13 +63,13 @@ void HarvestIO::loadGenbank(const char * file, bool useSeq)
 bool HarvestIO::loadHarvest(const char * file)
 {
 	ifstream in(file);
-	
-	char header[capnpHeaderLength];
-	
-	in.read(header, capnpHeaderLength);
+
+	std::vector<char> header(capnpHeaderLength);
+
+	in.read(header.data(), capnpHeaderLength);
 	in.close();
-	
-	if ( false || strncmp(header, capnpHeader, capnpHeaderLength) == 0 )
+
+	if ( false || strncmp(header.data(), capnpHeader, capnpHeaderLength) == 0 )
 	{
 		return loadHarvestCapnp(file);
 	}
@@ -111,7 +111,7 @@ bool HarvestIO::loadHarvestCapnp(const char * file)
 		if ( fd < 0 )
 		{
 			cerr << "ERROR: could not open " << file << " for reading.\n";
-			exit(1);
+			_exit(1);
 		}
 		
 		char buffer[1024];
@@ -121,7 +121,7 @@ bool HarvestIO::loadHarvestCapnp(const char * file)
 		int ret = inf(fd, fds[1]);
 		if (ret != Z_OK) zerr(ret);
 		close(fd);
-		exit(ret);
+		_exit(ret);
 		
 		gzFile fileIn = gzopen(file, "rb");
 		
@@ -141,7 +141,7 @@ bool HarvestIO::loadHarvestCapnp(const char * file)
 		
 		gzclose(fileIn);
 		close(fds[1]);
-		exit(0);
+		_exit(0);
 	}
 	
 	// read from pipe
@@ -317,7 +317,7 @@ void HarvestIO::writeHarvest(const char * file)
 		if ( fd < 0 )
 		{
 			cerr << "ERROR: could not open " << file << " for writing.\n";
-			exit(1);
+			_exit(1);
 		}
 		
 		// write header
@@ -327,7 +327,7 @@ void HarvestIO::writeHarvest(const char * file)
 		
 		int ret = def(fds[0], fd, Z_DEFAULT_COMPRESSION);
 		if (ret != Z_OK) zerr(ret);
-        exit(ret);
+        _exit(ret);
         
 		char buffer[1024];
 		gzFile fileOut = gzopen(file, "ab");
@@ -342,7 +342,7 @@ void HarvestIO::writeHarvest(const char * file)
 		
 		gzclose(fileOut);
 		close(fds[0]);
-		exit(0);
+		_exit(0);
 	}
 	
 	// write to pipe

@@ -182,7 +182,7 @@ void RulerView::wheelEvent(QWheelEvent * event)
 {
 	if ( alignment )
 	{
-		emit signalMouseWheel(event->delta());
+		emit signalMouseWheel(event->angleDelta().y());
 	}
 }
 
@@ -392,12 +392,12 @@ void RulerView::updateBuffer()
 		
 		if ( left )
 		{
-			sprintf(rightStringFormat, "%%0%dd%%c", 3);
-			sprintf(rightString, rightStringFormat, right, units[unit]);
+			snprintf(rightStringFormat, sizeof(rightStringFormat), "%%0%dd%%c", 3);
+			snprintf(rightString, sizeof(rightString), rightStringFormat, right, units[unit]);
 		}
 		else
 		{
-			sprintf(rightString, "%d%c", right, units[unit]);
+			snprintf(rightString, sizeof(rightString), "%d%c", right, units[unit]);
 		}
 		
 		painter.drawText(QRect(bin + 2, 0, getWidth(), getHeight()), Qt::AlignVCenter, QString(rightString));

@@ -9,6 +9,7 @@
 #include <QPainterPath>
 #include <QMouseEvent>
 #include <QToolTip>
+#include <algorithm>
 
 bool annotationLessThan(const FeatureView& a, const FeatureView& b)
 {
@@ -105,7 +106,7 @@ void AnnotationView::load(const AnnotationList & annotationList, const Alignment
 		featureView->search = false;
 	}
 	
-	qSort(annotations.begin(), annotations.end(), annotationLessThan);
+	std::sort(annotations.begin(), annotations.end(), annotationLessThan);
 	setRows();
 }
 
@@ -384,7 +385,7 @@ void AnnotationView::updateBuffer()
 void AnnotationView::wheelEvent(QWheelEvent * event)
 {
 	DrawingArea::wheelEvent(event);
-	emit signalMouseWheel(event->delta());
+	emit signalMouseWheel(event->angleDelta().y());
 }
 
 void AnnotationView::checkHighlight()
@@ -624,7 +625,7 @@ void AnnotationView::drawAnnotation(int index, QPainter * painter, bool highligh
 		x2TextMax = x2 - textBufferRight;
 	}
 	
-	int widthText = x2TextMax - x1TextMin > textHeight ? painter->fontMetrics().width(name) + textHeight : textHeight;
+	int widthText = x2TextMax - x1TextMin > textHeight ? painter->fontMetrics().horizontalAdvance(name) + textHeight : textHeight;
 	
 	int x1Text = (x1 + x2 - widthText) / 2;
 	

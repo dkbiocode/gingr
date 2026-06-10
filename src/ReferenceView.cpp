@@ -108,7 +108,7 @@ void ReferenceView::updateBuffer()
 	
 	QPainter painter(imageBuffer);
 	
-	if ( snpBuffer->getMax() != 1 && baseWidth < 1 || snpBuffer->getSynteny() )
+	if ( (snpBuffer->getMax() != 1 && baseWidth < 1) || snpBuffer->getSynteny() )
 	{
 		return;
 	}
@@ -210,7 +210,7 @@ void ReferenceView::updateBuffer()
 void ReferenceView::wheelEvent(QWheelEvent * event)
 {
 	DrawingArea::wheelEvent(event);
-	emit signalMouseWheel(event->delta());
+	emit signalMouseWheel(event->angleDelta().y());
 }
 
 void ReferenceView::updatePosition()

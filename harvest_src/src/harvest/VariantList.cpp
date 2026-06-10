@@ -91,13 +91,13 @@ void VariantList::addFilterFromBed(const char * file, const char * name, const c
 void VariantList::addVariantsFromAlignment(const vector<string> & seqs, const ReferenceList & referenceList, int sequence, int position, int length, bool reverse)
 {
 //	Harvest::Variation * msg = harvest.mutable_variation();
-	char col[seqs.size() + 1];
+	std::vector<char> col(seqs.size() + 1);
         //add arrays for tracking conserved,poorly aligned columns
 	vector<bool> conserved(seqs[0].length()+1,true);
 	vector<bool> gaps(seqs[0].length()+1,false);
 	vector<bool> nns(seqs[0].length()+1,false);
 	int offset = 0;
-	
+
 	col[seqs.size()] = 0; // null-terminate for use as a c-style string
 	
         //simple loop to check for column conservation
@@ -288,7 +288,7 @@ void VariantList::addVariantsFromAlignment(const vector<string> & seqs, const Re
 				varNew->reference = col[0];
 			}
 			
-			varNew->alleles = col;
+			varNew->alleles = col.data();
 			varNew->filters = 0;
 			
 			if ( indel )
@@ -1084,20 +1084,20 @@ void VariantList::writeToVcf(std::ostream &out, bool indels, const ReferenceList
 		}
 		else if ( signature )
 		{
-			bool pass[tracks.size()];
-			
+			std::vector<bool> pass(tracks.size());
+
 			for ( int i = 0; i < tracks.size(); i++ )
 			{
 				pass[i] = variant.alleles[i] != variant.alleles[tracksFocus[0]];
 			}
-			
+
 			for ( int i = 0; i < tracksFocus.size(); i++ )
 			{
 				pass[tracksFocus[i]] = variant.alleles[tracksFocus[i]] == variant.alleles[tracksFocus[0]];
 			}
-			
+
 			bool isSignature = true;
-			
+
 			for ( int i = 0; i < tracks.size(); i++ )
 			{
 				if ( ! pass[i] )

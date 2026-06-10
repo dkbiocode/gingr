@@ -5,6 +5,7 @@
 // See the LICENSE.txt file included with this software for license information.
 
 #include "LcbView.h"
+#include <vector>
 
 void LcbView::setAlignment(const Alignment * newAlignment)
 {
@@ -32,10 +33,8 @@ void LcbView::updateBuffer()
 	
 	int windowSize = end - start + 1;
 	float binWidth = (float)bins / windowSize;
-	float con[bins];
+	std::vector<float> con(bins, 0.0f);
 	float conMax = 0;
-	
-	memset(con, 0, sizeof(float) * bins);
 	
 	for ( int i = alignment->getNextLcb(start); i < alignment->getLcbCount() && alignment->getLcb(i).startGapped <= end; i++ )
 	{

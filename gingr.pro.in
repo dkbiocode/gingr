@@ -16,8 +16,13 @@ QMAKE_CXXFLAGS += -std=c++17
 unix {
 	macx {
 		TARGET = Gingr
-		LIBS += -mmacosx-version-min=10.7 -stdlib=libc++
-		QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -stdlib=libc++
+		LIBS += -stdlib=libc++
+		QMAKE_CXXFLAGS += -stdlib=libc++
+		# AGL framework is deprecated and removed in modern macOS SDKs
+		# Override Qt's OpenGL framework settings to only use OpenGL (not AGL)
+		QMAKE_LIBS_OPENGL = -framework OpenGL
+		# Set to modern macOS to avoid version mismatch warnings
+		QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.0
 	} else {
 		TARGET = gingr
 		LIBS += -L. -static-libstdc++ -Wl,--wrap=memcpy

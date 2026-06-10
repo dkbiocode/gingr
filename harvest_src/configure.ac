@@ -55,4 +55,5 @@ fi
 AC_SUBST(protobuf, $with_protobuf)
 AC_SUBST(capnp, $with_capnp)
 
-AC_OUTPUT(Makefile)
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT

@@ -5,6 +5,7 @@
 // See the LICENSE.txt file included with this software for license information.
 
 #include "TrackView.h"
+#include <algorithm>
 
 float absf(float value);
 
@@ -128,9 +129,10 @@ int TrackView::getLcb(int position, int width, float &offset) const
 			return regionViews[i]->getLcb();
 		}
 	}
-	
-	//printf("ERROR\n");
-	// TODO: error
+
+	// No matching region found - return -1 to indicate error
+	offset = 0;
+	return -1;
 }
 
 float TrackView::getLcbOffset(int lcb, float offset) const
@@ -138,7 +140,7 @@ float TrackView::getLcbOffset(int lcb, float offset) const
 	return offsetX.getValue() + regionViewsByLcb[lcb]->offsetTrack(offset) * (rc ? -1 : 1);
 }
 
-void TrackView::initialize(const RegionVector * refByLcb, const RegionVector * newTrack, unsigned int refSize, float newOffsetY, float newHeight)
+void TrackView::initialize(const RegionVector * refByLcb, const RegionVector * newTrack, unsigned int refSize, float /* newOffsetY */, float /* newHeight */)
 {
 	int regionRefIndexLast;
 	int lcb; // TODO: this is only valid if blocks are single regions (see below)
@@ -233,7 +235,7 @@ void TrackView::initialize(const RegionVector * refByLcb, const RegionVector * n
 	}
 	
 	trackLength = regionStart;
-	qSort(regionViews.begin(), regionViews.end());
+	std::sort(regionViews.begin(), regionViews.end());
 }
 
 float absf(float value)
