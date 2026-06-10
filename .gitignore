@@ -18,6 +18,10 @@ configure~
 # Generated directories
 Gingr.app/
 autom4te.cache/
+build/
+lib/
+gingr_app/build/
+harvest/build/
 
 # Binaries
 harvesttools
