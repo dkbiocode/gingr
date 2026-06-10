@@ -32,7 +32,8 @@ jobs:
       - name: Install dependencies
         shell: bash -l {0}
         run: |
-          conda install -y qt protobuf capnproto autoconf automake make gcc_linux-64 gxx_linux-64 mesa-libgl-devel-cos7-x86_64 libglvnd-glx-cos7-x86_64
+          conda install -y qt protobuf capnproto autoconf automake make
+          conda install -y gcc_linux-64 gxx_linux-64 mesa-libgl-devel-cos7-x86_64 libglvnd-glx-cos7-x86_64
 
       - name: Build harvest-tools
         shell: bash -l {0}

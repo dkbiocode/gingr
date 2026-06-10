@@ -63,7 +63,13 @@ jobs:
       - name: Install dependencies (Conda)
         shell: bash -l {0}
         run: |
-          conda install -y qt=${{ matrix.qt-version }} protobuf capnproto autoconf automake make
+          # Install common dependencies
+          conda install -y qt=${{ matrix.qt-version }} protobuf capnproto
+
+          # Install build tools (Unix only)
+          if [ "$RUNNER_OS" != "Windows" ]; then
+            conda install -y autoconf automake make
+          fi
 
       - name: Install platform-specific dependencies (Linux)
         if: runner.os == 'Linux'
@@ -87,29 +93,40 @@ jobs:
       - name: Display build environment
         shell: bash -l {0}
         run: |
+          echo "=== Conda Environment Check ==="
+          echo "CONDA_PREFIX: $CONDA_PREFIX"
+          echo "PATH: $PATH"
+          conda info
+          echo ""
+
+          echo "=== Installed Packages ==="
+          conda list | grep -E "(qt|protobuf|capnp)" || echo "No matching packages found"
+          echo ""
+
           echo "=== Compiler Information ==="
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
-            gcc --version
-            g++ --version
+            gcc --version 2>&1 | head -1 || echo "gcc not found"
+            g++ --version 2>&1 | head -1 || echo "g++ not found"
           elif [ "${{ matrix.compiler }}" = "clang" ]; then
-            clang --version
-            clang++ --version
+            clang --version 2>&1 | head -1 || echo "clang not found"
+            clang++ --version 2>&1 | head -1 || echo "clang++ not found"
           elif [ "${{ matrix.compiler }}" = "msvc" ]; then
             cl.exe 2>&1 | head -n 1 || echo "MSVC compiler"
           fi
+          echo ""
 
-          echo -e "\n=== Qt Information ==="
-          qmake --version
+          echo "=== Qt Information ==="
+          qmake --version || echo "qmake not found"
+          echo ""
 
-          echo -e "\n=== Protobuf Information ==="
-          protoc --version
+          echo "=== Protobuf Information ==="
+          protoc --version || echo "protoc not found in PATH"
+          which protoc || echo "protoc location unknown"
+          echo ""
 
-          echo -e "\n=== Cap'n Proto Information ==="
-          capnp --version
-
-          echo -e "\n=== Conda Environment ==="
-          conda info
-          conda list | grep -E "(qt|protobuf|capnp)"
+          echo "=== Cap'n Proto Information ==="
+          capnp --version || echo "capnp not found"
+          echo ""
 
       - name: Build harvest-tools
         shell: bash -l {0}
