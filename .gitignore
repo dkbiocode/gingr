@@ -9,7 +9,6 @@ moc_predefs.h
 qrc_*.cpp
 .qmake.stash
 Makefile
-gingr.pro
 config.log
 config.status
 configure
