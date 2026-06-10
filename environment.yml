@@ -7,7 +7,8 @@ dependencies:
   - qt=5.15
   - protobuf
   - capnproto
-  - autoconf
-  - automake
-  - make
+  # Build tools - Unix only (Windows will use pre-installed tools)
+  - autoconf  # [not win]
+  - automake  # [not win]
+  - make      # [not win]
   # Platform-specific packages will be installed in the workflow

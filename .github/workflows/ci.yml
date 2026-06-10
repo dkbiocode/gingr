@@ -69,14 +69,14 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash -l {0}
         run: |
-          conda install -y gcc_linux-64 gxx_linux-64 libgl-devel-cos7-x86_64 mesa-libgl-devel-cos7-x86_64
+          conda install -y gcc_linux-64 gxx_linux-64 mesa-libgl-devel-cos7-x86_64 libglvnd-glx-cos7-x86_64
 
-      - name: Install platform-specific dependencies (Windows - MSVC)
-        if: runner.os == 'Windows' && matrix.compiler == 'msvc'
+      - name: Install platform-specific dependencies (Windows)
+        if: runner.os == 'Windows'
         shell: bash -l {0}
         run: |
-          # Install MSVC build tools via conda-forge
-          conda install -y "m2-autoconf" "m2-automake" "m2-make"
+          # Install MSYS2 build tools for Windows
+          conda install -y -c msys2 m2-autoconf m2-automake m2-make || echo "Warning: m2 tools not available, using system tools"
 
       - name: Setup MSVC
         if: runner.os == 'Windows' && matrix.compiler == 'msvc'
