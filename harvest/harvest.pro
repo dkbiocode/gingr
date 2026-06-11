@@ -6,7 +6,7 @@
 TEMPLATE = lib
 CONFIG += staticlib
 CONFIG -= qt
-CONFIG += c++17
+# Don't use CONFIG += c++17 - it adds -std=gnu++1z which overrides our explicit -std=c++17
 
 TARGET = harvest
 

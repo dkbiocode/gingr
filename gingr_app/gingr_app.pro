@@ -19,7 +19,8 @@ INCLUDEPATH += . src ../harvest/src
 
 QT += xml
 QT += widgets
-CONFIG += release c++17
+CONFIG += release
+# Don't use CONFIG += c++17 - it adds -std=gnu++1z which overrides our explicit -std=c++17
 RESOURCES += resource.qrc
 ICON = img/gingr.icns
 
