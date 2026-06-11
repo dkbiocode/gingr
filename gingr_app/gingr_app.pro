@@ -33,6 +33,9 @@ LIBS += -L$$OUT_PWD/../lib -lharvest
 
 
 unix {
+	# Ensure C++17 on Unix (Cap'n Proto requires C++14+)
+	QMAKE_CXXFLAGS += -std=c++17
+
 	macx {
 		TARGET = Gingr
 		LIBS += -stdlib=libc++
@@ -48,6 +51,11 @@ unix {
 		QMAKE_CXXFLAGS += -include src/memcpyLink.h -D_GNU_SOURCE
 		QMAKE_CFLAGS += -include src/memcpyLink.h
 	}
+}
+
+win32 {
+	# Ensure C++17 on Windows (Cap'n Proto requires C++14+)
+	QMAKE_CXXFLAGS += /std:c++17
 }
 
 # Input

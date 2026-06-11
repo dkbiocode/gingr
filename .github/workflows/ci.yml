@@ -66,7 +66,8 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash -l {0}
         run: |
-          conda install -y gcc_linux-64 gxx_linux-64 mesa-libgl-devel-cos7-x86_64 libglvnd-glx-cos7-x86_64
+          # Install compilers and OpenGL development headers
+          conda install -y gcc_linux-64 gxx_linux-64 mesa-libgl-devel-cos7-x86_64 libglvnd-glx-cos7-x86_64 libglvnd-opengl-cos7-x86_64
 
       - name: Setup MSVC
         if: runner.os == 'Windows' && matrix.compiler == 'msvc'

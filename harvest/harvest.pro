@@ -34,6 +34,9 @@ win32 {
 
 # Platform-specific settings
 unix {
+    # Ensure C++17 on Unix (Cap'n Proto requires C++14+)
+    QMAKE_CXXFLAGS += -std=c++17
+
     macx {
         # macOS
         QMAKE_CXXFLAGS += -stdlib=libc++
@@ -48,6 +51,8 @@ unix {
 win32 {
     # Windows - enable threading mode
     DEFINES += USE_THREADING=1
+    # Ensure C++17 on Windows (Cap'n Proto requires C++14+)
+    QMAKE_CXXFLAGS += /std:c++17
 }
 
 # Protobuf/Cap'n Proto code generation

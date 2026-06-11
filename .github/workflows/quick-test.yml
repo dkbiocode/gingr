@@ -36,7 +36,8 @@ jobs:
           # libprotobuf provides C++ headers, protobuf is just Python bindings
           # Pin to protobuf 6.33.5 (exact version our generated .pb files are from)
           conda install -y qt libprotobuf=6.33.5 capnproto
-          conda install -y gcc_linux-64 gxx_linux-64 mesa-libgl-devel-cos7-x86_64 libglvnd-glx-cos7-x86_64
+          # Install compilers and OpenGL development headers
+          conda install -y gcc_linux-64 gxx_linux-64 mesa-libgl-devel-cos7-x86_64 libglvnd-glx-cos7-x86_64 libglvnd-opengl-cos7-x86_64
 
       - name: Build Gingr with qmake
         shell: bash -l {0}
