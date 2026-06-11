@@ -17,7 +17,12 @@
 #include "parse.h"
 #include <sys/stat.h>
 #include <string.h>
-#include <unistd.h>
+#ifdef _WIN32
+#include <io.h>      // Windows: read, write, close, open
+#define ssize_t int  // Windows doesn't have ssize_t
+#else
+#include <unistd.h>  // Unix: read, write, close, open, fork, pipe
+#endif
 #include <zlib.h>
 #include <stdio.h>
 #include <assert.h>

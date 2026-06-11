@@ -35,8 +35,10 @@ LIBS += -L$$OUT_PWD/../lib -lharvest
 
 unix {
 	# Ensure C++17 on Unix (Cap'n Proto requires C++14+)
-	# Remove qmake's default C++ standard flags and set our own
+	# Override qmake's default C++ standard - qmake adds -std=gnu++11 from mkspecs
+	# We need to replace it in the flags that get added during release builds
 	QMAKE_CXXFLAGS -= -std=gnu++11
+	QMAKE_CXXFLAGS_RELEASE -= -std=gnu++11
 	QMAKE_CXXFLAGS += -std=c++17
 
 	macx {
@@ -150,6 +152,13 @@ SOURCES += src/Alignment.cpp \
            src/TrackListView.cpp \
            src/TrackView.cpp \
            src/Tween.cpp
+
+# macOS: Ensure C++17 comes LAST (after mkspecs append gnu++11)
+# This must be at the end of the .pro file to ensure it's processed last
+macx {
+    QMAKE_CXXFLAGS += -std=c++17
+}
+
 # Link against conda dependencies
 LIBS += -L/Users/david/miniconda3/envs/gingr-build/lib -Wl,-rpath,/Users/david/miniconda3/envs/gingr-build/lib
 LIBS += -lprotobuf -labsl_log_internal_check_op -labsl_die_if_null -labsl_log_internal_conditions -labsl_log_internal_message -labsl_examine_stack

@@ -35,12 +35,24 @@ win32 {
 # Platform-specific settings
 unix {
     # Ensure C++17 on Unix (Cap'n Proto requires C++14+)
-    # Remove qmake's default C++ standard flags and set our own
+    # The challenge: qmake's mkspecs add -std=gnu++11 at the END of the compile command
+    # The last -std= flag wins, so we need to ensure ours comes after mkspec's flags
+
+    # First, try to remove all gnu++11 flags from all variables
     QMAKE_CXXFLAGS -= -std=gnu++11
+    QMAKE_CXXFLAGS_RELEASE -= -std=gnu++11
+    QMAKE_CXXFLAGS_DEBUG -= -std=gnu++11
+    QMAKE_CXXFLAGS_WARN_ON -= -std=gnu++11
+
+    # Add our C++17 flag
     QMAKE_CXXFLAGS += -std=c++17
 
     macx {
-        # macOS
+        # macOS: mkspecs/macx-clang adds -std=gnu++11 in QMAKE_CXXFLAGS
+        # We need to append -std=c++17 AFTER all other flags
+        # Use QMAKE_CXXFLAGS_WARN_ON which is processed near the end
+        QMAKE_CXXFLAGS_WARN_ON -= -std=gnu++11
+        QMAKE_CXXFLAGS_WARN_ON += -std=c++17
         QMAKE_CXXFLAGS += -stdlib=libc++
         QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.0
     } else {
@@ -111,6 +123,12 @@ SOURCES += \
 # Linux needs memcpy wrapper
 unix:!macx {
     SOURCES += src/harvest/memcpyWrap.c
+}
+
+# macOS: Ensure C++17 comes LAST (after mkspecs append gnu++11)
+# This must be at the end of the .pro file to ensure it's processed last
+macx {
+    QMAKE_CXXFLAGS += -std=c++17
 }
 
 # Installation
