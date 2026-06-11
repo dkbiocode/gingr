@@ -35,6 +35,8 @@ win32 {
 # Platform-specific settings
 unix {
     # Ensure C++17 on Unix (Cap'n Proto requires C++14+)
+    # Remove qmake's default C++ standard flags and set our own
+    QMAKE_CXXFLAGS -= -std=gnu++11
     QMAKE_CXXFLAGS += -std=c++17
 
     macx {

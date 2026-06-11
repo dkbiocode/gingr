@@ -22,21 +22,21 @@ jobs:
             arch: arm64
             qt-version: "5.15.*"
 
-          # Linux - gcc and clang - TEMPORARILY DISABLED
-          # - os: ubuntu-22.04
-          #   compiler: gcc
-          #   arch: x86_64
-          #   qt-version: "5.15.*"
-          # - os: ubuntu-22.04
-          #   compiler: clang
-          #   arch: x86_64
-          #   qt-version: "5.15.*"
+          # Linux - gcc and clang
+          - os: ubuntu-22.04
+            compiler: gcc
+            arch: x86_64
+            qt-version: "5.15.*"
+          - os: ubuntu-22.04
+            compiler: clang
+            arch: x86_64
+            qt-version: "5.15.*"
 
-          # Windows - qmake build - TEMPORARILY DISABLED
-          # - os: windows-2022
-          #   compiler: msvc
-          #   arch: x64
-          #   qt-version: "5.15.*"
+          # Windows - qmake build
+          - os: windows-2022
+            compiler: msvc
+            arch: x64
+            qt-version: "5.15.*"
 
     steps:
       - name: Checkout code
