@@ -15,25 +15,22 @@ jobs:
       fail-fast: false  # Continue testing other platforms even if one fails
       matrix:
         include:
-          # macOS - clang (Apple Silicon and Intel) - TEMPORARILY DISABLED
-          # - os: macos-14-large
+          # macOS - clang (Apple Silicon)
+          # macos-14-large (Intel) disabled due to billing limits
+          - os: macos-14
+            compiler: clang
+            arch: arm64
+            qt-version: "5.15.*"
+
+          # Linux - gcc and clang - TEMPORARILY DISABLED
+          # - os: ubuntu-22.04
+          #   compiler: gcc
+          #   arch: x86_64
+          #   qt-version: "5.15.*"
+          # - os: ubuntu-22.04
           #   compiler: clang
           #   arch: x86_64
           #   qt-version: "5.15.*"
-          # - os: macos-14
-          #   compiler: clang
-          #   arch: arm64
-          #   qt-version: "5.15.*"
-
-          # Linux - gcc and clang
-          - os: ubuntu-22.04
-            compiler: gcc
-            arch: x86_64
-            qt-version: "5.15.*"
-          - os: ubuntu-22.04
-            compiler: clang
-            arch: x86_64
-            qt-version: "5.15.*"
 
           # Windows - qmake build - TEMPORARILY DISABLED
           # - os: windows-2022
